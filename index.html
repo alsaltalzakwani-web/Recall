@@ -11,14 +11,17 @@
 <body>
 <header class="site-header">
   <div class="site-header-inner">
-    <span class="wordmark">Recall</span>
-    <div class="settings-row">
-      <button class="pill-btn" id="numerals-toggle" type="button"></button>
-      <button class="pill-btn" id="lang-toggle" type="button"></button>
+    <div class="brand-group">
+      <div class="brand-logo"><img src="assets/etqan-logo.jpg" alt="إتقان"></div>
+      <div class="brand-tagline" id="brand-tagline"></div>
+    </div>
+    <div class="numerals-toggle" id="numerals-toggle">
+      <button type="button" data-numerals="western">123</button>
+      <button type="button" data-numerals="eastern">١٢٣</button>
     </div>
   </div>
 </header>
-<main class="wrap" id="app"></main>
+<main id="app"></main>
 <footer class="site-footer">
   <span id="site-footer-note"></span>
 </footer>

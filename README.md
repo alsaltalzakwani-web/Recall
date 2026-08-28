@@ -2,11 +2,13 @@
 
 A spaced-repetition review scheduler for students. Subjects → lessons → 1/3/7/14/28-day
 review checkpoints, with auto-calculated next review dates and multi-select "completed with"
-tags. No accounts — all data is saved locally in the browser (per device).
+tags. Checkpoints are marked off in order — only the next due one can be checked, and only
+the most recently checked one can be undone. No accounts — all data is saved locally in the
+browser (per device).
 
-Built in the Etqan visual style: cream background, terracotta/orange accent, sage green,
-and the Doran typeface. Full Arabic RTL support with an English/Arabic toggle and an
-optional Eastern Arabic numerals (٠١٢٣) toggle.
+Built in the Etqan visual style: cream background, terracotta accent, sage green, and the
+Doran typeface, branded with the Etqan logo. Arabic-only, full RTL, with an Eastern/Western
+numerals (١٢٣ / 123) toggle.
 
 ## Running locally
 
@@ -38,16 +40,17 @@ finished workflow run and in Settings → Pages).
 ## Project structure
 
 ```
-index.html          Page shell + header (brand, language/numerals toggles)
+index.html          Page shell + header (Etqan logo, tagline, numerals toggle)
 css/style.css        Etqan-branded styles, RTL via CSS logical properties
-js/i18n.js           English/Arabic strings + locale-aware number/date formatting
+js/i18n.js           Arabic strings + locale-aware number/date formatting
 js/storage.js        localStorage read/write helpers
 js/app.js            App state, rendering, and event wiring
+assets/etqan-logo.jpg Etqan brand logo, shown in the header
 assets/fonts/         Doran webfont (woff2, 5 weights)
 ```
 
 ## Data
 
 Subjects and lessons are stored under the `recall.subjects.v1` key in `localStorage`;
-language/numerals preferences under `recall.settings.v1`. Nothing leaves the browser —
+the numerals preference under `recall.settings.v1`. Nothing leaves the browser —
 clearing site data or switching browsers/devices starts fresh.

@@ -1,103 +1,86 @@
-/* Translation strings + locale-aware number/date formatting. */
+/* Arabic strings + locale-aware number/date formatting.
+   Recall is Arabic-only — see README for why the language toggle was dropped. */
+
+/* n → one of forms.zero/one/two/few (3–10)/many (11+), Arabic plural rules. */
+function arPlural(n, forms) {
+  if (n === 0 && forms.zero !== undefined) return forms.zero;
+  if (n === 1) return forms.one;
+  if (n === 2) return forms.two;
+  if (n >= 3 && n <= 10) return forms.few;
+  return forms.many;
+}
+
 const STRINGS = {
-  en: {
-    dir: 'ltr',
-    brand: 'Recall',
-    tagline: 'Spaced review schedules, by subject.',
-    newSubject: 'New subject',
-    subjectNamePlaceholder: 'Subject name',
-    add: 'Add',
-    cancel: 'Cancel',
-    deleteSubject: 'Delete subject',
-    lessonsCount: n => `${fmtNum(n)} lesson${n === 1 ? '' : 's'}`,
-    dueCount: n => `${fmtNum(n)} due`,
-    upToDate: 'Up to date',
-    noSubjects: 'No subjects yet',
-    noSubjectsSub: 'Add one to build its review schedule.',
-    backToSubjects: 'Subjects',
-    lessonNamePlaceholder: 'Lesson name',
-    addLesson: 'Add lesson',
-    firstReview: 'First review',
-    mastered: 'Mastered',
-    dueNow: 'Due now',
-    next: date => `Next: ${date}`,
-    noLessons: 'No lessons yet',
-    noLessonsSub: 'Add a lesson above to start its 1–3–7–14–28 review schedule.',
-    deleteLesson: 'Delete lesson',
-    completedWith: 'Completed with',
-    addNote: '+ add',
-    customNotePlaceholder: 'Add custom + Enter',
-    dayShort: d => `${fmtNum(d)}d`,
-    langToggleLabel: 'العربية',
-    numeralsLabel: n => (n === 'eastern' ? '٠١٢٣' : '0123'),
-    footerNote: 'Your progress is saved on this browser only — it won’t sync across devices.',
-    defaultNotes: {
-      studentBook: 'Student book',
-      activityBook: 'Activity book',
-      outsideBook: 'Outside book',
-    },
-  },
-  ar: {
-    dir: 'rtl',
-    brand: 'Recall',
-    tagline: 'جداول مراجعة موزعة على فترات، لكل مادة.',
-    newSubject: 'مادة جديدة',
-    subjectNamePlaceholder: 'اسم المادة',
-    add: 'إضافة',
-    cancel: 'إلغاء',
-    deleteSubject: 'حذف المادة',
-    lessonsCount: n => {
-      if (n === 0) return 'لا دروس';
-      if (n === 1) return 'درس واحد';
-      if (n === 2) return 'درسان';
-      if (n >= 3 && n <= 10) return `${fmtNum(n)} دروس`;
-      return `${fmtNum(n)} درساً`;
-    },
-    dueCount: n => {
-      if (n === 1) return 'مستحق واحد';
-      if (n === 2) return 'مستحقان';
-      if (n >= 3 && n <= 10) return `${fmtNum(n)} مستحقة`;
-      return `${fmtNum(n)} مستحقاً`;
-    },
-    upToDate: 'محدَّث',
-    noSubjects: 'لا توجد مواد بعد',
-    noSubjectsSub: 'أضف مادة لبناء جدول مراجعتها.',
-    backToSubjects: 'المواد',
-    lessonNamePlaceholder: 'اسم الدرس',
-    addLesson: 'إضافة درس',
-    firstReview: 'أول مراجعة',
-    mastered: 'مُتقَن',
-    dueNow: 'مستحق الآن',
-    next: date => `التالي: ${date}`,
-    noLessons: 'لا توجد دروس بعد',
-    noLessonsSub: 'أضف درساً أعلاه لبدء جدول المراجعة ١-٣-٧-١٤-٢٨.',
-    deleteLesson: 'حذف الدرس',
-    completedWith: 'أُنجز باستخدام',
-    addNote: '+ إضافة',
-    customNotePlaceholder: 'أضف وسماً مخصصاً ثم Enter',
-    dayShort: d => `${fmtNum(d)}ي`,
-    langToggleLabel: 'English',
-    numeralsLabel: n => (n === 'eastern' ? '٠١٢٣' : '0123'),
-    footerNote: 'يُحفظ تقدمك في هذا المتصفح فقط، ولا يتم مزامنته بين الأجهزة.',
-    defaultNotes: {
-      studentBook: 'كتاب الطالب',
-      activityBook: 'كتاب النشاط',
-      outsideBook: 'كتاب خارجي',
-    },
+  tagline: 'التكرار المتباعد، في موعده',
+  pickSubject: 'اختر مادة',
+  pickSubjectSub: 'اختر مادة لعرض دروسها وموضع كل درس في دورة المراجعة.',
+  dueToday: 'مراجعات اليوم',
+  newSubject: 'مادة جديدة',
+  subjectNamePlaceholder: 'اسم المادة',
+  add: 'إضافة',
+  cancel: 'إلغاء',
+  deleteSubject: 'حذف المادة',
+  lessonsCount: n => arPlural(n, {
+    zero: 'لا دروس', one: 'درس واحد', two: 'درسان',
+    few: `${bidiNum(n)} دروس`, many: `${bidiNum(n)} درساً`,
+  }),
+  dueCount: n => arPlural(n, {
+    zero: '—', one: 'مستحق واحد', two: 'مستحقان',
+    few: `${bidiNum(n)} مستحقة`, many: `${bidiNum(n)} مستحقاً`,
+  }),
+  masteredCount: n => arPlural(n, {
+    zero: 'لا دروس متقنة', one: 'درس متقن واحد', two: 'درسان متقنان',
+    few: `${bidiNum(n)} دروس متقنة`, many: `${bidiNum(n)} درساً متقناً`,
+  }),
+  reviewsDueCount: n => arPlural(n, {
+    zero: 'لا مراجعات', one: 'مراجعة واحدة', two: 'مراجعتان',
+    few: `${bidiNum(n)} مراجعات`, many: `${bidiNum(n)} مراجعة`,
+  }),
+  lessonsLabel: 'دروس',
+  dueLabel: 'مستحقة',
+  masteredLabel: 'مُتقن',
+  noSubjects: 'لا توجد مواد بعد',
+  noSubjectsSub: 'أضف مادة لبناء جدول مراجعتها.',
+  backToSubjects: 'كل المواد',
+  lessonNamePlaceholder: 'اسم الدرس',
+  addLesson: 'إضافة درس',
+  firstReview: 'أول مراجعة',
+  nextReview: 'المراجعة القادمة',
+  mastered: 'مُتقَن',
+  dueNow: 'مستحق اليوم',
+  overdue: 'متأخرة',
+  started: 'بدأ',
+  inProgress: 'قيد المراجعة',
+  allDone: 'اكتملت المراجعات الخمس',
+  noLessons: 'لا توجد دروس بعد',
+  noLessonsSub: 'أضف درساً أعلاه لبدء جدول المراجعة ١-٣-٧-١٤-٢٨.',
+  deleteLesson: 'حذف الدرس',
+  lessonColumn: 'الدرس',
+  reviewSchedule: 'جدول المراجعة',
+  progressOfFive: n => `${bidiNum(n)} من ${bidiNum(5)}`,
+  completedWith: 'أُنجز باستخدام',
+  addTag: '+ إضافة',
+  selectOption: 'اختر خيارًا',
+  addOptionPlaceholder: 'أضف خيارًا',
+  timelineHint: 'اضغط على أي نقطة مراجعة لتأكيدها — سيظهر موعد المراجعة التالية تلقائيًا.',
+  footerNote: 'يُحفظ تقدمك في هذا المتصفح فقط، ولا يتم مزامنته بين الأجهزة.',
+  defaultNotes: {
+    studentBook: 'كتاب الطالب',
+    activityBook: 'كتاب النشاط',
+    outsideBook: 'كتاب خارجي',
   },
 };
 
-/* current settings, read by the formatter helpers above (set by app.js) */
-const i18nState = { lang: 'ar', numerals: 'eastern' };
+/* current numerals setting, read by the formatter helpers below (set by app.js) */
+const i18nState = { numerals: 'eastern' };
 
 function t() {
-  return STRINGS[i18nState.lang];
+  return STRINGS;
 }
 
 function currentLocale() {
   const numSys = i18nState.numerals === 'eastern' ? 'arab' : 'latn';
-  const base = i18nState.lang === 'ar' ? 'ar' : 'en';
-  return `${base}-u-nu-${numSys}`;
+  return `ar-u-nu-${numSys}`;
 }
 
 function fmtNum(n) {
@@ -108,11 +91,20 @@ function fmtNum(n) {
   }
 }
 
+/* A number glued next to Arabic words gets visually reordered by the
+   browser's bidi algorithm (western digits are a weak "European number"
+   run with no strong direction of their own) — e.g. "3 مراجعات" renders
+   with "مراجعات" first. <bdi> isolates the digits from that reordering. */
+function bidiNum(n) {
+  return `<bdi>${fmtNum(n)}</bdi>`;
+}
+
 function fmtDate(dateStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr + 'T00:00:00');
   try {
-    return new Intl.DateTimeFormat(currentLocale(), { month: 'short', day: 'numeric' }).format(d);
+    const month = new Intl.DateTimeFormat('ar', { month: 'short' }).format(d);
+    return `${bidiNum(d.getDate())} ${month}`;
   } catch (e) {
     return dateStr;
   }
