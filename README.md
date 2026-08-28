@@ -25,10 +25,15 @@ automatically on every push to the repository's default branch. One-time setup:
 
 1. In the repo, go to **Settings → Pages**.
 2. Under **Build and deployment → Source**, choose **GitHub Actions**.
-3. Push again (or re-run the workflow from the **Actions** tab).
+3. Go to the **Actions** tab, open the most recent "Deploy Recall to GitHub Pages" run,
+   and click **Re-run all jobs**.
 
-Your live URL will be `https://<owner>.github.io/<repo>/` (shown in the workflow run and in
-Settings → Pages once deployed).
+This step has to be done by a repo admin from the web UI — the workflow's own token is not
+permitted to create the Pages site, so the deploy fails at "Setup Pages" until Pages is
+switched on.
+
+The live URL will be **https://alsaltalzakwani-web.github.io/Recall/** (also shown on the
+finished workflow run and in Settings → Pages).
 
 ## Project structure
 
