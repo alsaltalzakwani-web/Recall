@@ -46,16 +46,63 @@ function noteLabel(note) {
   return note;
 }
 
+/* Demo mode (?demo=1) shows the screens pre-filled with example lessons in
+   each review state. It never reads or writes storage, so opening it cannot
+   touch a student's real schedule, and a reload resets it. */
+const DEMO = new URLSearchParams(location.search).has('demo');
+
+function demoSubjects() {
+  const today = todayStr();
+  return [
+    {
+      id: 'demo-math',
+      name: 'الرياضيات',
+      lessons: [
+        // Just started: added today, nothing checked off yet.
+        { id: 'd1', name: 'المتتاليات الحسابية', firstReview: today,
+          reviews: [false, false, false, false, false], notes: ['default:studentBook'] },
+        // Due today: first checkpoint done, the 3-day one lands on today.
+        { id: 'd2', name: 'النهايات والاتصال', firstReview: addDays(today, -3),
+          reviews: [true, false, false, false, false], notes: ['default:studentBook', 'default:activityBook'] },
+        // Fully mastered: all five checkpoints complete.
+        { id: 'd3', name: 'المشتقات', firstReview: addDays(today, -28),
+          reviews: [true, true, true, true, true], notes: ['default:activityBook', 'default:outsideBook'] },
+      ],
+    },
+    {
+      id: 'demo-phys',
+      name: 'الفيزياء',
+      lessons: [
+        { id: 'd4', name: 'الحركة الدائرية', firstReview: addDays(today, -7),
+          reviews: [true, true, false, false, false], notes: ['default:studentBook'] },
+        { id: 'd5', name: 'قوانين نيوتن', firstReview: addDays(today, -1),
+          reviews: [true, false, false, false, false], notes: [] },
+      ],
+    },
+    {
+      id: 'demo-chem',
+      name: 'الكيمياء',
+      lessons: [
+        { id: 'd6', name: 'الروابط الكيميائية', firstReview: addDays(today, -30),
+          reviews: [true, true, true, true, true], notes: ['default:studentBook'] },
+      ],
+    },
+    { id: 'demo-eng', name: 'اللغة الإنجليزية', lessons: [] },
+  ];
+}
+
 function saveData() {
+  if (DEMO) return;
   Storage.saveSubjects(state.subjects);
 }
 function saveSettings() {
+  if (DEMO) return;
   Storage.saveSettings(state.settings);
 }
 
 function init() {
-  state.subjects = Storage.loadSubjects();
-  const savedSettings = Storage.loadSettings();
+  state.subjects = DEMO ? demoSubjects() : Storage.loadSubjects();
+  const savedSettings = DEMO ? null : Storage.loadSettings();
   if (savedSettings) {
     state.settings = Object.assign(state.settings, savedSettings);
   } else {

@@ -25,32 +25,34 @@
   font-weight:800; font-style:normal; font-display:swap;
 }
 
-/* ===== Tokens (Etqan brand) ===== */
+/* ===== Tokens (Etqan brand, cooled) =====
+   The ground is a sage-leaning cream (hue 56, sat 19) rather than a warm
+   one (hue 37, sat 46), so it reads cool against the terracotta accent.
+
+   Three reds, deliberately: brand #EA2E00 clears 3:1 on the cream and
+   4.3:1 under white, which carries large headlines but not an 11.5px
+   "due" pill or a button label (both need 4.5:1). Small bold text uses
+   --accent-text and button fills use --accent-deep: same hue, enough
+   contrast. Every pair below was checked against WCAG AA. */
 :root{
-  --bg:#F0E6D6;              /* cream/beige */
-  --card:#FFFFFF;
+  --bg:#DFDED0;               /* cooled cream/beige ground */
+  --card:#FCFCF9;
   --ink:#1A1A1A;              /* near-black body text */
-  --muted:#7A7266;
-  --line:#E1D3B8;
-  --accent:#EA2E00;           /* terracotta/orange */
-  --accent-soft:#FBE1D9;
+  --muted:#5C6054;            /* 4.8:1 on --bg, 6.3:1 on --card */
+  --line:#C6C8B8;
+  --accent:#EA2E00;           /* brand terracotta: headlines, due identity */
+  --accent-text:#B82400;      /* same hue, for small bold text */
+  --accent-deep:#DA2A00;      /* same hue, for white-on-fill buttons */
+  --accent-soft:#FCE4DE;
   --sage:#9DBDB8;             /* sage green */
-  --sage-soft:#E7F0EE;
-  --sage-ink:#4F7570;         /* accessible text on sage-soft */
+  --sage-soft:#E2EBEA;
+  --sage-ink:#3F625D;         /* 5.6:1 on --sage-soft */
   --due:#EA2E00;
-  --due-soft:#FBE1D9;
-  --done:#4F7570;
-  --done-soft:#E7F0EE;
+  --due-soft:#FCE4DE;
+  --done:#3F625D;
+  --done-soft:#E2EBEA;
   --radius:14px;
   --font:'Doran','Noto Naskh Arabic','Segoe UI',Tahoma,Arial,sans-serif;
-}
-@supports (color: color-mix(in srgb, red, white)){
-  :root{
-    --accent-soft: color-mix(in srgb, var(--accent) 14%, white);
-    --sage-soft: color-mix(in srgb, var(--sage) 28%, white);
-    --due-soft: color-mix(in srgb, var(--due) 14%, white);
-    --done-soft: color-mix(in srgb, var(--sage) 28%, white);
-  }
 }
 
 *{box-sizing:border-box;}
@@ -86,8 +88,8 @@ h1,h2,h3{font-family:var(--font);margin:0;}
   font-family:var(--font);font-weight:500;font-size:13px;
   padding:7px 14px;border-radius:99px;cursor:pointer;
 }
-.pill-btn:hover{border-color:var(--accent);color:var(--accent);}
-.pill-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.pill-btn:hover{border-color:var(--accent-text);color:var(--accent-text);}
+.pill-btn.active{background:var(--accent-deep);border-color:var(--accent-deep);color:#fff;}
 
 .wrap{max-width:1040px;margin:0 auto;padding:32px 28px 60px;}
 .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
@@ -99,7 +101,7 @@ h1,h2,h3{font-family:var(--font);margin:0;}
   font-family:var(--font);font-size:14px;font-weight:500;
   cursor:pointer;padding:6px 2px;margin-inline-start:-2px;
 }
-.backbtn:hover{color:var(--accent);}
+.backbtn:hover{color:var(--accent-text);}
 [dir="rtl"] .backbtn svg{transform:scaleX(-1);}
 
 /* ===== subject grid ===== */
@@ -117,7 +119,7 @@ h1,h2,h3{font-family:var(--font);margin:0;}
   font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;
   font-family:var(--font);
 }
-.badge.due{background:var(--due-soft);color:var(--due);}
+.badge.due{background:var(--due-soft);color:var(--accent-text);}
 .badge.ok{background:var(--done-soft);color:var(--done);}
 .subj-del{
   position:absolute;top:10px;inset-inline-end:10px;background:none;border:none;
@@ -132,7 +134,7 @@ h1,h2,h3{font-family:var(--font);margin:0;}
   background:transparent;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;
   gap:6px;font-family:var(--font);
 }
-.add-card:hover{border-color:var(--accent);color:var(--accent);}
+.add-card:hover{border-color:var(--accent-text);color:var(--accent-text);}
 .inline-form{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   padding:16px;display:flex;flex-direction:column;gap:10px;
@@ -145,15 +147,15 @@ input[type=text], input[type=date]{
 input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
 .row-btns{display:flex;gap:8px;}
 button.primary{
-  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  background:var(--accent-deep);color:#fff;border:none;border-radius:8px;
   padding:9px 16px;font-family:var(--font);font-weight:700;font-size:13.5px;cursor:pointer;
 }
-button.primary:hover{background:#C22600;}
+button.primary:hover{background:#B82400;}
 button.ghost{
   background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;
   padding:9px 16px;font-size:13.5px;cursor:pointer;font-family:var(--font);font-weight:500;
 }
-button.ghost:hover{border-color:var(--accent);color:var(--accent);}
+button.ghost:hover{border-color:var(--accent-text);color:var(--accent-text);}
 
 /* ===== lesson list ===== */
 .lesson-form-row{display:flex;flex-wrap:wrap;gap:10px;}
@@ -166,7 +168,7 @@ button.ghost:hover{border-color:var(--accent);color:var(--accent);}
 .lesson-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
 .lesson-name{
   font-family:var(--font);font-weight:700;font-size:17px;border:none;background:none;
-  color:var(--accent);padding:2px 0;width:100%;
+  color:var(--accent-text);padding:2px 0;width:100%;
 }
 .lesson-name:focus{outline:none;border-bottom:1px solid var(--accent);}
 .icon-btn{background:none;border:none;color:var(--line);cursor:pointer;padding:4px;flex-shrink:0;}
@@ -177,9 +179,11 @@ button.ghost:hover{border-color:var(--accent);color:var(--accent);}
 .status-pill{
   font-family:var(--font);font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:99px;
 }
-.status-pill.due{background:var(--due-soft);color:var(--due);}
+.status-pill.due{background:var(--due-soft);color:var(--accent-text);}
 .status-pill.upcoming{background:var(--sage-soft);color:var(--sage-ink);}
-.status-pill.mastered{background:var(--done-soft);color:var(--done);}
+/* Solid sage, so "finished for good" is distinct from the tinted
+   "upcoming" pill rather than another calm sage wash. 8.6:1 on the fill. */
+.status-pill.mastered{background:var(--sage);color:var(--ink);}
 
 /* timeline signature */
 .timeline{position:relative;height:58px;margin:8px 4px 18px;}
@@ -216,7 +220,7 @@ button.ghost:hover{border-color:var(--accent);color:var(--accent);}
   background:none;border:1px dashed var(--line);color:var(--muted);font-size:12px;
   padding:4px 11px;border-radius:99px;cursor:pointer;font-family:var(--font);font-weight:500;
 }
-.chip-add:hover{border-color:var(--accent);color:var(--accent);}
+.chip-add:hover{border-color:var(--accent-text);color:var(--accent-text);}
 .popover{
   position:absolute;z-index:5;top:calc(100% + 6px);inset-inline-start:0;
   background:#fff;border:1px solid var(--line);border-radius:10px;
