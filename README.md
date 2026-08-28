@@ -21,11 +21,11 @@ or just open `index.html` directly in a browser (local storage still works from 
 ## Deploying
 
 This repo includes `.github/workflows/deploy.yml`, which publishes the site to GitHub Pages
-automatically on every push to `main`. One-time setup:
+automatically on every push to the repository's default branch. One-time setup:
 
 1. In the repo, go to **Settings → Pages**.
 2. Under **Build and deployment → Source**, choose **GitHub Actions**.
-3. Push to `main` (or re-run the workflow from the **Actions** tab).
+3. Push again (or re-run the workflow from the **Actions** tab).
 
 Your live URL will be `https://<owner>.github.io/<repo>/` (shown in the workflow run and in
 Settings → Pages once deployed).
