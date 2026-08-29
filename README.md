@@ -1,10 +1,12 @@
 # Recall
 
-A spaced-repetition review scheduler for students. Subjects → lessons → 1/3/7/14/28-day
-review checkpoints, with auto-calculated next review dates and multi-select "completed with"
-tags. Checkpoints are marked off in order — only the next due one can be checked, and only
-the most recently checked one can be undone. No accounts — all data is saved locally in the
-browser (per device).
+A spaced-repetition review scheduler for students. Subjects → lessons → a spaced review
+schedule (first review, then a day, 3 days, a week, two weeks, and a month later by
+default — every gap but the first is editable from the schedule button in the header, to
+fit each student's pace), with auto-calculated next review dates and multi-select
+"completed with" tags. Checkpoints are marked off in order — only the next due one can be checked,
+and only the most recently checked one can be undone. No accounts — all data is saved
+locally in the browser (per device).
 
 Built in the Etqan visual style: cream background, terracotta accent, sage green, and the
 Doran typeface, branded with the Etqan logo. Arabic-only, full RTL, with an Eastern/Western
@@ -52,5 +54,6 @@ assets/fonts/         Doran webfont (woff2, 5 weights)
 ## Data
 
 Subjects and lessons are stored under the `recall.subjects.v1` key in `localStorage`;
-the numerals preference under `recall.settings.v1`. Nothing leaves the browser —
-clearing site data or switching browsers/devices starts fresh.
+the numerals preference and the review-schedule day counts under `recall.settings.v1`.
+Nothing leaves the browser — clearing site data or switching browsers/devices starts
+fresh.

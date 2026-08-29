@@ -1,5 +1,10 @@
-/* Recall — spaced review scheduler. Core logic + rendering. */
-const INTERVALS = [1, 3, 7, 14, 28];
+/* Recall — spaced review scheduler. Core logic + rendering.
+   Checkpoint 0 is the first review itself (day 0, always considered done
+   the moment a lesson is created), followed by spaced-out checkpoints —
+   1/3/7/14/28 days after it by default. Every value but the first is
+   user-editable via the schedule settings popover in the header. */
+const DEFAULT_INTERVALS = [0, 1, 3, 7, 14, 28];
+let INTERVALS = DEFAULT_INTERVALS.slice();
 const DEFAULT_NOTE_KEYS = ['default:studentBook', 'default:activityBook', 'default:outsideBook'];
 const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
@@ -7,9 +12,10 @@ let state = {
   subjects: [],
   view: 'subjects', // 'subjects' | 'subject'
   activeSubjectId: null,
-  settings: { numerals: 'eastern' },
+  settings: { numerals: 'eastern', intervals: DEFAULT_INTERVALS.slice() },
 };
 let openPopoverFor = null;
+let scheduleSettingsOpen = false;
 
 function uid() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -28,17 +34,31 @@ function diffDays(dateStr) {
   return Math.round((target - today) / 86400000);
 }
 function dayWord(n) {
-  return n === 1 ? 'يوم' : 'أيام';
+  if (n === 1) return 'يوم';
+  if (n === 2) return 'يومان';
+  if (n >= 3 && n <= 10) return 'أيام';
+  return 'يوماً';
+}
+
+/* Checkpoint 0 is always "first review" (day 0). The rest show their
+   configured day count, except the common 7/14/28 defaults, which read
+   as week/two-weeks/month rather than a raw day count. */
+function checkpointLabel(i, day) {
+  if (i === 0) return t().firstReview;
+  if (day === 7) return t().oneWeek;
+  if (day === 14) return t().twoWeeks;
+  if (day === 28) return t().oneMonth;
+  return `${bidiNum(day)}&#8201; ${dayWord(day)}`;
 }
 
 function getSubject(id) {
   return state.subjects.find(s => s.id === id);
 }
 
-/* Index of the first not-yet-reviewed checkpoint, or 5 if all done. */
+/* Index of the first not-yet-reviewed checkpoint, or INTERVALS.length if all done. */
 function firstUndone(reviews) {
   const i = reviews.indexOf(false);
-  return i === -1 ? 5 : i;
+  return i === -1 ? INTERVALS.length : i;
 }
 
 /* Checkpoints can only be checked off in order: only the next due one can
@@ -60,11 +80,14 @@ function cpDate(lesson, i) {
 
 function lessonStatus(lesson) {
   const fu = firstUndone(lesson.reviews);
-  if (fu === 5) return { key: 'mastered' };
+  if (fu === INTERVALS.length) return { key: 'mastered' };
   const delta = diffDays(cpDate(lesson, fu));
   if (delta < 0) return { key: 'overdue', delta };
   if (delta === 0) return { key: 'due', delta };
-  return { key: fu === 0 ? 'started' : 'progress', delta };
+  // Checkpoint 0 (first review) is auto-done, so a lesson with only that
+  // done (fu === 1) reads the same as one with nothing done at all (fu === 0,
+  // possible only if someone manually undoes the first review).
+  return { key: fu <= 1 ? 'started' : 'progress', delta };
 }
 
 function isLessonDue(lesson) {
@@ -92,15 +115,15 @@ function demoSubjects() {
       id: 'demo-math',
       name: 'الرياضيات',
       lessons: [
-        // Just started: added today, nothing checked off yet.
+        // Just started: added today, only the (automatic) first review done.
         { id: 'd1', name: 'المتتاليات الحسابية', firstReview: today,
-          reviews: [false, false, false, false, false], notes: ['default:studentBook'] },
-        // Due today: first checkpoint done, the 3-day one lands on today.
+          reviews: [true, false, false, false, false, false], notes: ['default:studentBook'] },
+        // Due today: the 1-day checkpoint done, the 3-day one lands on today.
         { id: 'd2', name: 'النهايات والاتصال', firstReview: addDays(today, -3),
-          reviews: [true, false, false, false, false], notes: ['default:studentBook', 'default:activityBook'] },
-        // Fully mastered: all five checkpoints complete.
+          reviews: [true, true, false, false, false, false], notes: ['default:studentBook', 'default:activityBook'] },
+        // Fully mastered: every checkpoint complete.
         { id: 'd3', name: 'المشتقات', firstReview: addDays(today, -28),
-          reviews: [true, true, true, true, true], notes: ['default:activityBook', 'default:outsideBook'] },
+          reviews: [true, true, true, true, true, true], notes: ['default:activityBook', 'default:outsideBook'] },
       ],
     },
     {
@@ -108,10 +131,10 @@ function demoSubjects() {
       name: 'الفيزياء',
       lessons: [
         { id: 'd4', name: 'الحركة الدائرية', firstReview: addDays(today, -7),
-          reviews: [true, true, false, false, false], notes: ['default:studentBook'] },
+          reviews: [true, true, true, false, false, false], notes: ['default:studentBook'] },
         // Overdue: the 1-day checkpoint was never marked and is well past due.
         { id: 'd5', name: 'قوانين نيوتن', firstReview: addDays(today, -6),
-          reviews: [false, false, false, false, false], notes: [] },
+          reviews: [true, false, false, false, false, false], notes: [] },
       ],
     },
     {
@@ -119,7 +142,7 @@ function demoSubjects() {
       name: 'الكيمياء',
       lessons: [
         { id: 'd6', name: 'الروابط الكيميائية', firstReview: addDays(today, -30),
-          reviews: [true, true, true, true, true], notes: ['default:studentBook'] },
+          reviews: [true, true, true, true, true, true], notes: ['default:studentBook'] },
       ],
     },
     { id: 'demo-eng', name: 'اللغة الإنجليزية', lessons: [] },
@@ -135,16 +158,36 @@ function saveSettings() {
   Storage.saveSettings(state.settings);
 }
 
+/* Keeps INTERVALS.length constant (6): pads any shorter, previously-saved
+   reviews array with done leading checkpoints, since a lesson's first
+   review is always considered complete already. */
+function migrateLessons() {
+  state.subjects.forEach(s => {
+    s.lessons.forEach(l => {
+      while (l.reviews.length < INTERVALS.length) l.reviews.unshift(true);
+    });
+  });
+}
+
+function applyIntervals() {
+  const arr = state.settings.intervals;
+  INTERVALS = Array.isArray(arr) && arr.length === DEFAULT_INTERVALS.length ? arr : DEFAULT_INTERVALS.slice();
+}
+
 function init() {
   state.subjects = DEMO ? demoSubjects() : Storage.loadSubjects();
   const savedSettings = DEMO ? null : Storage.loadSettings();
   if (savedSettings) state.settings = Object.assign(state.settings, savedSettings);
   i18nState.numerals = state.settings.numerals;
+  applyIntervals();
+  migrateLessons();
+  saveData();
 
   document.getElementById('brand-tagline').textContent = t().tagline;
   document.getElementById('site-footer-note').textContent = t().footerNote;
 
   wireHeader();
+  wireScheduleSettingsToggle();
   render();
 }
 
@@ -167,6 +210,72 @@ function wireHeader() {
   updateNumeralsToggle();
 }
 
+function wireScheduleSettingsToggle() {
+  document.getElementById('schedule-settings-btn').onclick = () => {
+    scheduleSettingsOpen = !scheduleSettingsOpen;
+    renderScheduleSettingsPanel();
+  };
+}
+
+function renderScheduleSettingsPanel() {
+  const slot = document.getElementById('schedule-settings-slot');
+  if (!scheduleSettingsOpen) {
+    slot.innerHTML = '';
+    return;
+  }
+  const rows = INTERVALS.map((day, i) => i === 0
+    ? `<div class="schedule-row">
+        <span class="schedule-row-label">${escapeHtml(t().firstReview)}</span>
+        <span class="schedule-row-fixed">${escapeHtml(t().notEditable)}</span>
+      </div>`
+    : `<div class="schedule-row">
+        <span class="schedule-row-label">${checkpointLabel(i, day)}</span>
+        <input type="number" min="1" step="1" class="schedule-row-input" data-interval-idx="${i}" value="${day}">
+      </div>`
+  ).join('');
+  slot.innerHTML = `
+    <div class="schedule-popover">
+      <div class="schedule-popover-title">${escapeHtml(t().editScheduleTitle)}</div>
+      ${rows}
+      <div class="schedule-error" id="schedule-error" hidden></div>
+      <div class="schedule-popover-actions">
+        <button type="button" class="ghost" id="schedule-reset">${t().resetDefault}</button>
+        <button type="button" class="primary" id="schedule-save">${t().save}</button>
+      </div>
+    </div>`;
+  wireScheduleSettingsForm();
+}
+
+function wireScheduleSettingsForm() {
+  document.getElementById('schedule-reset').onclick = () => {
+    state.settings.intervals = DEFAULT_INTERVALS.slice();
+    applyIntervals();
+    saveSettings();
+    scheduleSettingsOpen = false;
+    renderScheduleSettingsPanel();
+    render();
+  };
+  document.getElementById('schedule-save').onclick = () => {
+    const next = INTERVALS.slice();
+    document.querySelectorAll('[data-interval-idx]').forEach(input => {
+      next[parseInt(input.getAttribute('data-interval-idx'), 10)] = parseInt(input.value, 10);
+    });
+    const valid = next.every((v, i) => Number.isInteger(v) && (i === 0 ? v === 0 : v > next[i - 1]));
+    if (!valid) {
+      const err = document.getElementById('schedule-error');
+      err.textContent = t().invalidIntervals;
+      err.hidden = false;
+      return;
+    }
+    state.settings.intervals = next;
+    applyIntervals();
+    saveSettings();
+    scheduleSettingsOpen = false;
+    renderScheduleSettingsPanel();
+    render();
+  };
+}
+
 // ---------- render ----------
 function render() {
   const app = document.getElementById('app');
@@ -181,9 +290,9 @@ function renderSubjects() {
   const cards = state.subjects
     .map(s => {
       const due = s.lessons.filter(isLessonDue).length;
-      const mastered = s.lessons.filter(l => firstUndone(l.reviews) === 5).length;
+      const mastered = s.lessons.filter(l => firstUndone(l.reviews) === INTERVALS.length).length;
       const doneCheckpoints = s.lessons.reduce((a, l) => a + l.reviews.filter(Boolean).length, 0);
-      const pct = s.lessons.length ? Math.round((doneCheckpoints / (s.lessons.length * 5)) * 100) : 0;
+      const pct = s.lessons.length ? Math.round((doneCheckpoints / (s.lessons.length * INTERVALS.length)) * 100) : 0;
       return `
     <div class="subj-card" data-open-subject="${s.id}">
       <button class="subj-del" data-del-subject="${s.id}" title="${t().deleteSubject}">
@@ -237,7 +346,7 @@ function renderSubject() {
 
   const lessons = subj.lessons.map(l => renderLesson(subj, l)).join('');
   const dueN = subj.lessons.filter(isLessonDue).length;
-  const masteredN = subj.lessons.filter(l => firstUndone(l.reviews) === 5).length;
+  const masteredN = subj.lessons.filter(l => firstUndone(l.reviews) === INTERVALS.length).length;
 
   return `
     <div class="screen-lessons">
@@ -283,7 +392,7 @@ function renderLesson(subj, lesson) {
     progress: { label: t().inProgress, cls: 'waiting' },
   }[status.key];
 
-  const pos = i => (19 + i * 17).toFixed(1);
+  const pos = i => (2 + i * (95 / (INTERVALS.length - 1))).toFixed(1);
   const doneCount = lesson.reviews.filter(Boolean).length;
 
   const cps = INTERVALS.map((day, i) => {
@@ -301,7 +410,7 @@ function renderLesson(subj, lesson) {
         <button class="cp-circle ${circleCls} ${clickable ? 'clickable' : 'not-clickable'}"
           data-toggle-cp="${lesson.id}" data-idx="${i}"
           title="${clickable ? escapeHtml(doneCp ? 'تراجع' : 'وضع علامة مراجعة') : ''}">${doneCp ? CHECK_SVG : ''}</button>
-        <div class="cp-day-label ${dayCls}">${bidiNum(day)}&#8201; ${dayWord(day)}</div>
+        <div class="cp-day-label ${dayCls}">${checkpointLabel(i, day)}</div>
         <div class="cp-date-label ${dateCls}">${revealed ? fmtDate(cpDate(lesson, i)) : '···'}</div>
       </div>`;
   }).join('');
@@ -329,7 +438,7 @@ function renderLesson(subj, lesson) {
     <div class="lesson-left">
       <div class="lesson-badges-row">
         <span class="lesson-status-badge ${badge.cls}">${badge.label}</span>
-        <span class="lesson-progress-label">${t().progressOfFive(doneCount)}</span>
+        <span class="lesson-progress-label">${t().progressLabel(doneCount, INTERVALS.length)}</span>
       </div>
       <input class="lesson-name-input" data-rename="${lesson.id}" value="${escapeHtml(lesson.name)}">
       <div class="lesson-first-review">${t().firstReview}: <input type="date" data-firstreview="${lesson.id}" value="${lesson.firstReview}"></div>
@@ -352,8 +461,6 @@ function renderLesson(subj, lesson) {
       <div class="timeline">
         <div class="timeline-track"></div>
         <div class="timeline-track-fill" style="width:${fill}"></div>
-        <div class="timeline-day0-mark"></div>
-        <div class="timeline-day0-label">${escapeHtml(t().firstReview)}</div>
         ${cps}
       </div>
     </div>
@@ -480,7 +587,7 @@ function wireEvents() {
         id: uid(),
         name,
         firstReview: dateInput.value || todayStr(),
-        reviews: [false, false, false, false, false],
+        reviews: INTERVALS.map((_, i) => i === 0),
         notes: [],
       });
       saveData();
@@ -581,6 +688,10 @@ function wireEvents() {
     if (openPopoverFor && !e.target.closest('.tags-block')) {
       openPopoverFor = null;
       render();
+    }
+    if (scheduleSettingsOpen && !e.target.closest('.schedule-settings-block')) {
+      scheduleSettingsOpen = false;
+      renderScheduleSettingsPanel();
     }
   };
 }
