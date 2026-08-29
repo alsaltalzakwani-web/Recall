@@ -20,13 +20,23 @@ let scheduleSettingsOpen = false;
 function uid() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
+/* Dates are calendar days in the student's own timezone, never instants, so
+   they are formatted from the local Y/M/D parts. toISOString() would convert
+   local midnight to UTC first, which east of Greenwich lands on the previous
+   day (00:00 in Muscat, UTC+4, is 20:00 the day before) and shifted every
+   review date a day early. */
+function isoLocal(d) {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return isoLocal(new Date());
 }
 function addDays(dateStr, days) {
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return isoLocal(d);
 }
 function diffDays(dateStr) {
   const target = new Date(dateStr + 'T00:00:00');
@@ -62,8 +72,12 @@ function firstUndone(reviews) {
 }
 
 /* Checkpoints can only be checked off in order: only the next due one can
-   be marked reviewed, and only the most recently done one can be undone. */
+   be marked reviewed, and only the most recently done one can be undone.
+   Checkpoint 0 is exempt — it *is* the lesson's first-review date, so it is
+   always done; undoing it would leave a lesson added today reading as
+   overdue. Its date is changed through the first-review field instead. */
 function checkpointClickable(reviews, i) {
+  if (i === 0) return false;
   const fu = firstUndone(reviews);
   return i === fu || i === fu - 1;
 }
@@ -160,11 +174,14 @@ function saveSettings() {
 
 /* Keeps INTERVALS.length constant (6): pads any shorter, previously-saved
    reviews array with done leading checkpoints, since a lesson's first
-   review is always considered complete already. */
+   review is always considered complete already. Also repairs checkpoint 0
+   on lessons saved while it was still undoable — left false, they would
+   read as overdue forever now that it can no longer be clicked. */
 function migrateLessons() {
   state.subjects.forEach(s => {
     s.lessons.forEach(l => {
       while (l.reviews.length < INTERVALS.length) l.reviews.unshift(true);
+      l.reviews[0] = true;
     });
   });
 }
