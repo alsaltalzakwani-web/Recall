@@ -73,7 +73,10 @@ body{
 h1,h2,h3{font-family:var(--font);margin:0;}
 
 /* ===== header ===== */
+/* Positioned so the schedule popover can anchor to the whole header on
+   narrow screens instead of to its 30px button — see the mobile block. */
 .site-header{
+  position:relative;
   border-bottom:1px solid var(--line-2);
 }
 .site-header-inner{
@@ -333,6 +336,12 @@ button.ghost:hover{border-color:var(--accent-text);color:var(--accent-text);}
 }
 @media (max-width:720px){
   .site-header-inner{padding:12px 16px;flex-wrap:wrap;}
+  /* The header wraps here, putting the gear near the screen edge, where a
+     270px panel anchored to it runs off-screen. Anchor to the header
+     instead and let the panel span the width, inset from both edges, so it
+     stays on screen at any width. */
+  .schedule-settings-block{position:static;}
+  .schedule-popover{inset-inline:16px;width:auto;}
   .screen-subjects,.screen-lessons{padding-inline:16px;}
   .site-footer{padding-inline:16px;}
   .page-title{font-size:30px;}
